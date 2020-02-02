@@ -23,7 +23,7 @@ def percentage_range_to_int(p):  # Currently just takes the average of their ran
         ps = p.split("-")
         return statistics.mean([int(i) for i in ps])
     else:
-        return 0
+        return 50
 
 def disability_to_int(d):
     if d == 'Y':
@@ -31,6 +31,8 @@ def disability_to_int(d):
     return 0
 
 def result_to_int(r):
+    if r == 'Distinction':
+        return 2
     if r == 'Pass':
         return 1
     return 0
@@ -42,7 +44,10 @@ X['gender'] = X['gender'].map(gender_to_int)
 X['highest_education'] = X['highest_education'].map(education_to_int)
 X['imd_band'] = X['imd_band'].map(percentage_range_to_int)
 X['disability'] = X['disability'].map(disability_to_int)
+X = np.nan_to_num(X)
 y['final_result'] = y['final_result'].map(result_to_int)
 
 model = sklearn.linear_model.LinearRegression()
 model.fit(X, y)  # Doesn't work and I don't know why
+
+print(model.predict([[1, 3, 55, 0, 30, 0]]))
