@@ -1,0 +1,46 @@
+DATA: () means not sure if relevant. An indent below a note means that info is stored in another table
+Module:
+	- ID
+	- length
+	- (start date)
+
+Assessments:
+	- module ID
+	- presentation ID (not sure what presentation means)
+	- type
+	- date
+
+Students:
+	- gender
+	- age range
+	- number of previous attempts
+	- region
+	- disability
+	- final result [THIS IS WHAT I'M TRYING TO GUESS]
+	- The modules the student is taking
+		- student ID
+		- module ID
+		- presentation ID
+		- date's of registration and unregistration
+	- Past assessments (very much doubt the model will have access to this)
+		- student ID
+		- assessment ID
+		- date submitted
+		- score
+
+VLE info (external resources available to students):
+	- site ID
+	- module ID
+	- assessment ID
+	- some other stuff
+	- each student's uses
+		- date of student's interaction
+		- the number of times a student interacted with it that day
+
+
+GENERAL NOTES:
+	The goal is clearly to take a student's information and guess their final result.
+	Not sure how much information this model will be given (do they just get student information or do they get some degree of past academic achievements?)
+
+IDEAS:
+	I could try just taking a student's information on its own (no extra info from courses etc.). This would be very easy but probably won't get very good results.
