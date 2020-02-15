@@ -45,12 +45,9 @@ GENERAL NOTES:
 
 IDEAS:
 	I could try just taking a student's information on its own (no extra info from courses etc.). This would be very easy but probably won't get very good results.
-	I could try using stratified-sampling with the studied_credits field
+	I could try using stratified-sampling (with what field?)
+		- Probably one of the aggregate ones, check some correlation stuff
 	Think about feature scaling
-
-HOW TO DEAL WITH THE MULITPLE TABLES ISSUE (ideas):
-	- Bring as many as you can into a single table (i.e. one-to-one relationships)
-	- Turn one-to-many relationships into one-to-one relationships (e.g. turn a student's scores into an average score)
 
 Data I'll use:
 	- Non-aggregate:
