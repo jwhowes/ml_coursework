@@ -51,3 +51,10 @@ IDEAS:
 HOW TO DEAL WITH THE MULITPLE TABLES ISSUE (ideas):
 	- Bring as many as you can into a single table (i.e. one-to-one relationships)
 	- Turn one-to-many relationships into one-to-one relationships (e.g. turn a student's scores into an average score)
+
+Data I'll use:
+	- Non-aggregate:
+		- studentInfo (All fields)
+	- Aggregate:
+		- studentRegistration (number of courses)
+		- studentAssessment (average score)
