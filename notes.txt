@@ -37,7 +37,6 @@ VLE info (external resources available to students):
 		- date of student's interaction
 		- the number of times a student interacted with it that day
 
-
 GENERAL NOTES:
 	The goal is clearly to take a student's information and guess their final result.
 	Not sure how much information this model will be given (do they just get student information or do they get some degree of past academic achievements?)
@@ -55,3 +54,9 @@ Data I'll use:
 	- Aggregate:
 		- studentRegistration (number of courses)
 		- studentAssessment (average score)
+
+final_result is not an integer so doesn't show up in the correlation matrix:
+	- Solutions:
+		- Make it an integer
+			- Via one-hot encoding
+			- Maybe just make distinction = 2, pass = 1, fail/withdrawn = 0
