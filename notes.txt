@@ -66,3 +66,8 @@ The four categories issue:
 	- Remove 'withdrawn' records and convert all distinctions to just passes
 		- I don't really like this idea
 		- Will only need one classifier but it won't give as much information
+
+tables and charts:
+	- ROC curves for everything
+	- A few charts showing correlations
+	- Correlation matrices with and without removing withdrawn rows
