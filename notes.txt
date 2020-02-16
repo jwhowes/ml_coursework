@@ -55,8 +55,12 @@ Data I'll use:
 		- studentRegistration (number of courses)
 		- studentAssessment (average score)
 
-final_result is not an integer so doesn't show up in the correlation matrix:
-	- Solutions:
-		- Make it an integer
-			- Via one-hot encoding
-			- Maybe just make distinction = 2, pass = 1, fail/withdrawn = 0
+The four categories issue:
+	- Make two groups with two categories in each
+		- Need three classifiers
+	- Remove 'withdrawn' records
+		- These are essentially corrupt Data
+		- Still need two classifiers if we are to separate pass/distinction
+	- Remove 'withdrawn' records and convert all distinctions to just passes
+		- I don't really like this idea
+		- Will only need one classifier but it won't give as much information
