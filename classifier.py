@@ -10,7 +10,7 @@ from sklearn.metrics import precision_score, recall_score, accuracy_score, f1_sc
 import numpy as np
 import pandas as pd
 
-show_corr = False
+show_corr = True
 show_hist = False
 
 def threshold(n, thresh):
@@ -47,6 +47,8 @@ registration = pd.read_csv("./data/studentRegistration.csv")
 assessment = pd.read_csv("./data/studentAssessment.csv")
 
 students = students.dropna(subset=["imd_band"])
+
+students = students[students["final_result"] != "Withdrawn"]  # The correlations are much higher when we remove withdrawn values
 
 #################################
 #### Creating Aggregate data ####
@@ -114,7 +116,7 @@ for train_index, test_index in split.split(fail_withdrawn, fail_withdrawn["avg_s
 
 for set_ in (pass_fail_train_set, pass_fail_test_set, pass_distinction_train_set, pass_distinction_test_set, fail_withdrawn_train_set, fail_withdrawn_test_set):
     set_.drop("avg_score_cat", axis=1, inplace=True)
-    set_.drop("id_student", axis=1, inplace=True)
+    #set_.drop("id_student", axis=1, inplace=True)
 
 pass_fail = pass_fail_train_set.drop("final_result", axis=1)
 pass_fail_labels = pass_fail_train_set["final_result"].copy()
@@ -162,6 +164,6 @@ pass_distinction_log.fit(pass_distinction, pass_distinction_labels)
 fail_withdrawn_log = sklearn.linear_model.LogisticRegressionCV()
 fail_withdrawn_log.fit(fail_withdrawn, fail_withdrawn_labels)
 
-#plot_roc_curve(pass_fail, pass_fail_labels, pass_fail_log)
-students.plot(kind="scatter", x="avg_score", y="final_result")
-plt.show()
+plot_roc_curve(pass_fail, pass_fail_labels, pass_fail_log)
+#students.plot(kind="scatter", x="avg_score", y="final_result")
+#plt.show()
