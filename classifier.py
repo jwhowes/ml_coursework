@@ -6,18 +6,24 @@ import sklearn.impute
 import sklearn.compose
 import sklearn.preprocessing
 import sklearn.linear_model
+from sklearn.metrics import precision_score, recall_score, accuracy_score, f1_score
 import numpy as np
 import pandas as pd
 
 show_corr = False
 show_hist = False
 
+def threshold(n, thresh):
+    if n > thresh:
+        return 1
+    return 0
+
 def result_to_int(result):
     if result == "Distinction":
         return 3
     elif result == "Pass":
         return 2
-    elif result == "Fail":
+    elif result == "Withdrawn":
         return 1
     else:
         return 0
@@ -26,6 +32,15 @@ def int_to_pass_fail(num):
     if num == 3 or num == 2:
         return 1
     return 0
+
+def plot_roc_curve(X, y, classifier):
+    fpr, tpr, thresholds = sklearn.metrics.roc_curve(y, classifier.decision_function(X))
+    plt.figure(figsize=(4,4))
+    plt.xlabel("FPR", fontsize=14)
+    plt.ylabel("TPR", fontsize=14)
+    plt.title("ROC Curve", fontsize=14)
+    plt.plot(fpr, tpr)
+    plt.show()
 
 students = pd.read_csv("./data/studentInfo.csv")  # Data from studentInfo
 registration = pd.read_csv("./data/studentRegistration.csv")
@@ -99,6 +114,7 @@ for train_index, test_index in split.split(fail_withdrawn, fail_withdrawn["avg_s
 
 for set_ in (pass_fail_train_set, pass_fail_test_set, pass_distinction_train_set, pass_distinction_test_set, fail_withdrawn_train_set, fail_withdrawn_test_set):
     set_.drop("avg_score_cat", axis=1, inplace=True)
+    set_.drop("id_student", axis=1, inplace=True)
 
 pass_fail = pass_fail_train_set.drop("final_result", axis=1)
 pass_fail_labels = pass_fail_train_set["final_result"].copy()
@@ -114,7 +130,7 @@ fail_withdrawn_labels = fail_withdrawn_train_set["final_result"].copy()
 #######################
 
 num_attribs = ["num_of_prev_attempts", "studied_credits", "num_modules", "avg_score"]
-cat_attribs = ["code_module", "code_presentation", "id_student", "gender", "region", "highest_education", "imd_band", "age_band", "disability"]
+cat_attribs = ["code_module", "code_presentation", "gender", "region", "highest_education", "imd_band", "age_band", "disability"]
 
 num_pipeline = sklearn.pipeline.Pipeline([
     ('imputer', sklearn.impute.SimpleImputer(strategy="median")),  # Replace null values with the median
@@ -137,17 +153,15 @@ fail_withdrawn = full_pipeline.fit_transform(fail_withdrawn)
 # We will start with the first option of splitting the categories into two groups
 # and those groups into two subgroups each
 
-pass_fail_reg = sklearn.linear_model.LinearRegression()  # This is very good on the training set!
-pass_fail_reg.fit(pass_fail, pass_fail_labels)
+pass_fail_log = sklearn.linear_model.LogisticRegressionCV()  # This is very good on the training set!
+pass_fail_log.fit(pass_fail, pass_fail_labels)
 
-pass_distinction_reg = sklearn.linear_model.LinearRegression()
-pass_distinction_reg.fit(pass_distinction, pass_distinction_labels)
+pass_distinction_log = sklearn.linear_model.LogisticRegressionCV()
+pass_distinction_log.fit(pass_distinction, pass_distinction_labels)
 
-fail_withdrawn_reg = sklearn.linear_model.LinearRegression()
-fail_withdrawn_reg.fit(fail_withdrawn, fail_withdrawn_labels)
+fail_withdrawn_log = sklearn.linear_model.LogisticRegressionCV()
+fail_withdrawn_log.fit(fail_withdrawn, fail_withdrawn_labels)
 
-# Trying pass_fail on a 5 instances from the training set:
-some_data = pass_fail[:5]
-some_labels = pass_fail_labels[:5]
-print("Predictions:", pass_fail_reg.predict(some_data))
-print("Labels:", list(some_labels))
+#plot_roc_curve(pass_fail, pass_fail_labels, pass_fail_log)
+students.plot(kind="scatter", x="avg_score", y="final_result")
+plt.show()

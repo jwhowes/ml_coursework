@@ -61,6 +61,7 @@ The four categories issue:
 	- Remove 'withdrawn' records
 		- These are essentially corrupt Data
 		- Still need two classifiers if we are to separate pass/distinction
+		- Looking at the scatter plot(s) (e.g. avg_score vs final_result), this seems to be confirmed
 	- Remove 'withdrawn' records and convert all distinctions to just passes
 		- I don't really like this idea
 		- Will only need one classifier but it won't give as much information
