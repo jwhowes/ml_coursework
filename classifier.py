@@ -19,7 +19,7 @@ import pandas as pd
 #########################################################################################
 
 show_corr = True
-show_hist = False
+show_hist = True
 
 def result_to_int(result):
     if result == "Distinction":
@@ -53,8 +53,16 @@ def show_corr_matrix(data, label):
     corr_matrix = data.corr()
     print(corr_matrix[label].sort_values(ascending=False))
 
-def show_scatter_matrices(data, attributes):
+def plot_scatter_matrices(data, attributes):
     pd.plotting.scatter_matrix(students[attributes], figsize=(12,8))
+    plt.show()
+
+def plot_logistic_classifier(X_unprepared, X_prepared, x, labels, log_classifier):
+    plt.figure(figsize=(4,4))
+    plt.xlabel(x, fontsize=14)
+    plt.ylabel("final_result", fontsize=14)
+    plt.scatter(X_unprepared[x], labels)
+    plt.scatter(X_unprepared[x], log_classifier.predict_proba(X_prepared)[:,1], s=0.1)
     plt.show()
 
 students = pd.read_csv("./data/studentInfo.csv")  # Data from studentInfo
@@ -94,7 +102,7 @@ students["final_result"] = students["final_result"].map(result_to_int)
 
 if show_corr:
     show_corr_matrix(students, "final_result")
-    show_scatter_matrices(students, ["num_of_prev_attempts", "studied_credits", "num_modules", "avg_score", "final_result"])
+    plot_scatter_matrices(students, ["num_of_prev_attempts", "studied_credits", "num_modules", "avg_score", "final_result"])
 
 students["avg_score_cat"] = np.ceil(students["avg_score"]/20)
 students["avg_score_cat"].where(students["avg_score_cat"] < 5, 5.0, inplace=True)
@@ -142,8 +150,8 @@ full_pipeline = sklearn.compose.ColumnTransformer([
     ("num", num_pipeline, num_attribs),
     ("cat", sklearn.preprocessing.OneHotEncoder(), cat_attribs)
 ])
-pass_fail = full_pipeline.fit_transform(pass_fail)
-pass_distinction = full_pipeline.fit_transform(pass_distinction)
+pass_fail_prepared = full_pipeline.fit_transform(pass_fail)
+pass_distinction_prepared = full_pipeline.fit_transform(pass_distinction)
 
 ###############################
 #### Training the model(s) ####
@@ -153,12 +161,10 @@ pass_distinction = full_pipeline.fit_transform(pass_distinction)
 # and those groups into two subgroups each
 
 pass_fail_log = sklearn.linear_model.LogisticRegressionCV()  # This is very good on the training set!
-pass_fail_log.fit(pass_fail, pass_fail_labels)
+pass_fail_log.fit(pass_fail_prepared, pass_fail_labels)
 
 pass_distinction_log = sklearn.linear_model.LogisticRegressionCV()
-pass_distinction_log.fit(pass_distinction, pass_distinction_labels)
+pass_distinction_log.fit(pass_distinction_prepared, pass_distinction_labels)
 
-#plot_roc_curve(pass_fail, pass_fail_labels, pass_fail_log)
 #students.plot(kind="scatter", x="avg_score", y="final_result")
 #plt.show()
-show_metrics(pass_fail, pass_fail_labels, pass_fail_log)
