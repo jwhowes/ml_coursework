@@ -58,11 +58,12 @@ Data I'll use:
 The four categories issue:
 	- Make two groups with two categories in each
 		- Need three classifiers
-	- Remove 'withdrawn' records
+	- Remove 'withdrawn' records and produce a pass/distinction subgroup of pass
 		- These are essentially corrupt Data
 		- Still need two classifiers if we are to separate pass/distinction
 		- Looking at the scatter plot(s) (e.g. avg_score vs final_result), this seems to be confirmed
 		- The correlations are much higher if we remove withdrawn records
+		- Definitely go for this one but provide functionality for both, so we can compare correlation matrices and accuracy etc.
 	- Remove 'withdrawn' records and convert all distinctions to just passes
 		- I don't really like this idea
 		- Will only need one classifier but it won't give as much information

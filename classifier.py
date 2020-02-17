@@ -10,26 +10,27 @@ from sklearn.metrics import precision_score, recall_score, accuracy_score, f1_sc
 import numpy as np
 import pandas as pd
 
+#########################################################################################
+#### How to run:                                                                     ####
+####    - Ensure matplotlib, sklearn, numpy, and pandas are installed and up-to-date ####
+####    - Run via the commmand line or through other means                           ####
+####        - e.g. python classifier.py                                              ####
+####    - All data files should be stored as .csv in a subfolder called 'data'       ####
+#########################################################################################
+
 show_corr = True
 show_hist = False
 
-def threshold(n, thresh):
-    if n > thresh:
-        return 1
-    return 0
-
 def result_to_int(result):
     if result == "Distinction":
-        return 3
-    elif result == "Pass":
         return 2
-    elif result == "Withdrawn":
+    elif result == "Pass":
         return 1
-    else:
+    elif result == "Fail":
         return 0
 
-def int_to_pass_fail(num):
-    if num == 3 or num == 2:
+def int_to_pass_fail(num):  # If we're including withdrawn rows
+    if num == 2 or num == 1:
         return 1
     return 0
 
@@ -40,6 +41,20 @@ def plot_roc_curve(X, y, classifier):
     plt.ylabel("TPR", fontsize=14)
     plt.title("ROC Curve", fontsize=14)
     plt.plot(fpr, tpr)
+    plt.show()
+
+def show_metrics(X, y, classifier):
+    print("Precision:", precision_score(y, classifier.predict(X)))
+    print("Recall:", recall_score(y, classifier.predict(X)))
+    print("Accuracy:", accuracy_score(y, classifier.predict(X)))
+    print("F1:", f1_score(y, classifier.predict(X)))
+
+def show_corr_matrix(data, label):
+    corr_matrix = data.corr()
+    print(corr_matrix[label].sort_values(ascending=False))
+
+def show_scatter_matrices(data, attributes):
+    pd.plotting.scatter_matrix(students[attributes], figsize=(12,8))
     plt.show()
 
 students = pd.read_csv("./data/studentInfo.csv")  # Data from studentInfo
@@ -78,28 +93,20 @@ if show_hist:
 students["final_result"] = students["final_result"].map(result_to_int)
 
 if show_corr:
-    corr_matrix = students.corr()
-    print(corr_matrix["final_result"].sort_values(ascending=False))  # It's clear that avg_score has the highest absolute correlation (0.47, the next highest is 0.16)
+    show_corr_matrix(students, "final_result")
+    show_scatter_matrices(students, ["num_of_prev_attempts", "studied_credits", "num_modules", "avg_score", "final_result"])
 
 students["avg_score_cat"] = np.ceil(students["avg_score"]/20)
 students["avg_score_cat"].where(students["avg_score_cat"] < 5, 5.0, inplace=True)
 
-# There are two options to deal with the 4 columns:
-#   1. split the data into 2 groups with subgroups
-#       - i.e. have a pass/fail table, a pass/distinction table and a fail/withdrawn table
-#   2. Remove withdrawn rows
-#       - Still need to split data into pass/fail table and pass/distinction table
-#   A third option is to remove withdrawn rows and convert distinctions to simple passes
-#       However, I feel this will remove too much information and make the classifier less useful
-
+############################
+#### Stratifed Sampling ####
+############################
 pass_fail = students.copy()
 pass_fail["final_result"] = pass_fail["final_result"].map(int_to_pass_fail)
 
-
-pass_distinction = students.loc[students["final_result"].isin([3, 2])].copy()
-pass_distinction["final_result"] = pass_distinction["final_result"].map(lambda x: x - 2)  # 1: distinction, 0: pass
-
-fail_withdrawn = students.loc[students["final_result"].isin([1, 0])].copy()  # 1: Fail, 0: Withdrawn
+pass_distinction = students.loc[students["final_result"].isin([2, 1])].copy()
+pass_distinction["final_result"] = pass_distinction["final_result"].map(lambda x: x - 1)  # 1: distinction, 0: pass
 
 split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)  # Remove random_state before submitting
 for train_index, test_index in split.split(pass_fail, pass_fail["avg_score_cat"]):
@@ -110,13 +117,9 @@ for train_index, test_index in split.split(pass_distinction, pass_distinction["a
     pass_distinction_train_set = pass_distinction.iloc[train_index]
     pass_distinction_test_set = pass_distinction.iloc[test_index]
 
-for train_index, test_index in split.split(fail_withdrawn, fail_withdrawn["avg_score_cat"]):
-    fail_withdrawn_train_set = fail_withdrawn.iloc[train_index]
-    fail_withdrawn_test_set = fail_withdrawn.iloc[test_index]
-
-for set_ in (pass_fail_train_set, pass_fail_test_set, pass_distinction_train_set, pass_distinction_test_set, fail_withdrawn_train_set, fail_withdrawn_test_set):
+for set_ in (pass_fail_train_set, pass_fail_test_set, pass_distinction_train_set, pass_distinction_test_set):
     set_.drop("avg_score_cat", axis=1, inplace=True)
-    #set_.drop("id_student", axis=1, inplace=True)
+    set_.drop("id_student", axis=1, inplace=True)
 
 pass_fail = pass_fail_train_set.drop("final_result", axis=1)
 pass_fail_labels = pass_fail_train_set["final_result"].copy()
@@ -124,13 +127,9 @@ pass_fail_labels = pass_fail_train_set["final_result"].copy()
 pass_distinction = pass_distinction_train_set.drop("final_result", axis=1)
 pass_distinction_labels = pass_distinction_train_set["final_result"].copy()
 
-fail_withdrawn = fail_withdrawn_train_set.drop("final_result", axis=1)
-fail_withdrawn_labels = fail_withdrawn_train_set["final_result"].copy()
-
 #######################
 #### Data Cleaning ####
 #######################
-
 num_attribs = ["num_of_prev_attempts", "studied_credits", "num_modules", "avg_score"]
 cat_attribs = ["code_module", "code_presentation", "gender", "region", "highest_education", "imd_band", "age_band", "disability"]
 
@@ -143,10 +142,8 @@ full_pipeline = sklearn.compose.ColumnTransformer([
     ("num", num_pipeline, num_attribs),
     ("cat", sklearn.preprocessing.OneHotEncoder(), cat_attribs)
 ])
-
 pass_fail = full_pipeline.fit_transform(pass_fail)
 pass_distinction = full_pipeline.fit_transform(pass_distinction)
-fail_withdrawn = full_pipeline.fit_transform(fail_withdrawn)
 
 ###############################
 #### Training the model(s) ####
@@ -161,9 +158,7 @@ pass_fail_log.fit(pass_fail, pass_fail_labels)
 pass_distinction_log = sklearn.linear_model.LogisticRegressionCV()
 pass_distinction_log.fit(pass_distinction, pass_distinction_labels)
 
-fail_withdrawn_log = sklearn.linear_model.LogisticRegressionCV()
-fail_withdrawn_log.fit(fail_withdrawn, fail_withdrawn_labels)
-
-plot_roc_curve(pass_fail, pass_fail_labels, pass_fail_log)
+#plot_roc_curve(pass_fail, pass_fail_labels, pass_fail_log)
 #students.plot(kind="scatter", x="avg_score", y="final_result")
 #plt.show()
+show_metrics(pass_fail, pass_fail_labels, pass_fail_log)
