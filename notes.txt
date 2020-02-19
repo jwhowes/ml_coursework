@@ -73,4 +73,6 @@ tables and charts:
 	- A few charts showing correlations
 	- Correlation matrices with and without removing withdrawn rows
 
-SHOULD I REMOVE ID_STUDENT?
+pass_distinction data:
+    9485 passes, 2237 distinctions (this is only from those who passed)
+    
