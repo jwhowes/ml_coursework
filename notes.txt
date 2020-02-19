@@ -72,3 +72,5 @@ tables and charts:
 	- ROC curves for everything
 	- A few charts showing correlations
 	- Correlation matrices with and without removing withdrawn rows
+
+SHOULD I REMOVE ID_STUDENT?

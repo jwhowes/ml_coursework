@@ -21,6 +21,7 @@ import pandas as pd
 
 show_corr = False
 show_hist = False
+show_strat_hist = False
 
 def result_to_int(result):
     if result == "Distinction":
@@ -115,6 +116,10 @@ if show_corr:
 students["avg_score_cat"] = np.ceil(students["avg_score"]/20)
 students["avg_score_cat"].where(students["avg_score_cat"] < 5, 5.0, inplace=True)
 
+if show_strat_hist:
+    students["avg_score_cat"].hist()
+    plt.savefig("avg_score_hist.png")
+
 ############################
 #### Stratifed Sampling ####
 ############################
@@ -139,7 +144,7 @@ for train_index, test_index in split.split(pass_distinction, pass_distinction["a
 
 for set_ in (students_train_set, students_test_set, pass_fail_train_set, pass_fail_test_set, pass_distinction_train_set, pass_distinction_test_set):
     set_.drop("avg_score_cat", axis=1, inplace=True)
-    set_.drop("id_student", axis=1, inplace=True)
+    #set_.drop("id_student", axis=1, inplace=True)
 
 students = students_train_set.drop("final_result", axis=1)
 students_labels = students_train_set["final_result"].copy()
@@ -179,8 +184,8 @@ pass_distinction_prepared = full_pipeline.transform(pass_distinction)
 students_forest = sklearn.ensemble.RandomForestClassifier(random_state=42)
 students_forest.fit(students_prepared, students_labels)
 
-#pass_fail_log = sklearn.linear_model.LogisticRegressionCV()  # This is very good on the training set!
-#pass_fail_log.fit(pass_fail_prepared, pass_fail_labels)
+pass_fail_log = sklearn.linear_model.LogisticRegressionCV()  # This is very good on the training set!
+pass_fail_log.fit(pass_fail_prepared, pass_fail_labels)
 
 pass_distinction_log = sklearn.linear_model.LogisticRegressionCV()
 pass_distinction_log.fit(pass_distinction_prepared, pass_distinction_labels)
@@ -204,6 +209,11 @@ pass_distinction_test_prepared = full_pipeline.transform(pass_distinction_test_s
 ###############################
 #### Evaluating the models ####
 ###############################
+
+print("Pass fail training:")
+show_metrics(pass_fail_prepared, pass_fail_labels, pass_fail_log)
+print("Pass distinction training:")
+show_metrics(pass_distinction_prepared, pass_distinction_labels, pass_distinction_log)
 
 #students.plot(kind="scatter", x="avg_score", y="final_result")
 #plt.show()
