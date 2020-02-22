@@ -36,15 +36,6 @@ def int_to_pass_fail(num):  # If we're including withdrawn rows
         return 1
     return 0
 
-def plot_roc_curve(X, y, classifier):
-    fpr, tpr, thresholds = sklearn.metrics.roc_curve(y, classifier.predict(X))
-    plt.figure(figsize=(4,4))
-    plt.xlabel("FPR", fontsize=14)
-    plt.ylabel("TPR", fontsize=14)
-    plt.title("ROC Curve", fontsize=14)
-    plt.plot(fpr, tpr)
-    plt.show()
-
 def show_metrics(X, y, classifier, multiclass=False):
     if multiclass:
         print("Precision:", precision_score(y, classifier.predict(X), average="macro"))
@@ -181,7 +172,7 @@ pass_distinction_prepared = full_pipeline.transform(pass_distinction)
 # We will start with the first option of splitting the categories into two groups
 # and those groups into two subgroups each
 
-students_forest = sklearn.ensemble.RandomForestClassifier(random_state=42)
+students_forest = sklearn.ensemble.RandomForestClassifier(random_state=42, oob_score=True)
 students_forest.fit(students_prepared, students_labels)
 
 pass_fail_log = sklearn.linear_model.LogisticRegressionCV()  # This is very good on the training set!
@@ -210,10 +201,6 @@ pass_distinction_test_prepared = full_pipeline.transform(pass_distinction_test_s
 #### Evaluating the models ####
 ###############################
 
-print("Pass fail training:")
-show_metrics(pass_fail_prepared, pass_fail_labels, pass_fail_log)
-print("Pass distinction training:")
-show_metrics(pass_distinction_prepared, pass_distinction_labels, pass_distinction_log)
-
+print(sklearn.metrics.confusion_matrix(students_test_set_labels, students_forest.predict(students_test_prepared)))
 #students.plot(kind="scatter", x="avg_score", y="final_result")
 #plt.show()
