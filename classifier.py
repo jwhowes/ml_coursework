@@ -22,6 +22,7 @@ import pandas as pd
 show_corr = False
 show_hist = False
 show_strat_hist = False
+do_grid_search = False
 
 def result_to_int(result):
     if result == "Distinction":
@@ -169,10 +170,16 @@ pass_distinction_prepared = full_pipeline.transform(pass_distinction)
 ###############################
 #### Training the model(s) ####
 ###############################
-# We will start with the first option of splitting the categories into two groups
-# and those groups into two subgroups each
+
+param_grid = [{'n_estimators': [50, 75, 100], 'max_features': ["auto", 4, 6, 8]}]
 
 students_forest = sklearn.ensemble.RandomForestClassifier(random_state=42, oob_score=True)
+if do_grid_search:
+    grid_search = sklearn.model_selection.GridSearchCV(students_forest, param_grid, cv=5, scoring='roc_auc_ovr', return_train_score=True)
+    grid_search.fit(students_prepared, students_labels)
+    print(grid_search.best_params_)
+    print(grid_search.best_estimator_)
+
 students_forest.fit(students_prepared, students_labels)
 
 pass_fail_log = sklearn.linear_model.LogisticRegressionCV()  # This is very good on the training set!
@@ -201,6 +208,6 @@ pass_distinction_test_prepared = full_pipeline.transform(pass_distinction_test_s
 #### Evaluating the models ####
 ###############################
 
-print(sklearn.metrics.confusion_matrix(students_test_set_labels, students_forest.predict(students_test_prepared)))
+
 #students.plot(kind="scatter", x="avg_score", y="final_result")
 #plt.show()
