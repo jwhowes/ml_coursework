@@ -48,15 +48,15 @@ def show_metrics(X, y, classifier, multiclass=False):
     if multiclass:
         print("F1:", f1_score(y, classifier.predict(X), average="macro"))
     else:
-    	print("F1:", f1_score(y, classifier.predict(X)))
+        print("F1:", f1_score(y, classifier.predict(X)))
 
 def show_corr_matrix(data, label):
     corr_matrix = data.corr()
     print(corr_matrix[label].sort_values(ascending=False))
 
 def plot_scatter_matrices(data, attributes):
-    pd.plotting.scatter_matrix(students[attributes], figsize=(12,8))
-    plt.show()
+    pd.plotting.scatter_matrix(students[attributes], figsize=(12,12))
+    plt.savefig("scatter_matrix.png")
 
 def plot_logistic_classifier(X_unprepared, X_prepared, x, labels, log_classifier):
     plt.figure(figsize=(4,4))
@@ -110,7 +110,7 @@ students["avg_score_cat"].where(students["avg_score_cat"] < 5, 5.0, inplace=True
 
 if show_strat_hist:
     students["avg_score_cat"].hist()
-    plt.savefig("avg_score_hist.png")
+    plt.show()
 
 ############################
 #### Stratifed Sampling ####
@@ -171,21 +171,28 @@ pass_distinction_prepared = full_pipeline.transform(pass_distinction)
 #### Training the model(s) ####
 ###############################
 
-param_grid = [{'n_estimators': [50, 75, 100], 'max_features': ["auto", 4, 6, 8]}]
-
 students_forest = sklearn.ensemble.RandomForestClassifier(random_state=42, oob_score=True)
-if do_grid_search:
+pass_fail_log = sklearn.linear_model.LogisticRegressionCV()  # This is very good on the training set!
+pass_distinction_log = sklearn.linear_model.LogisticRegressionCV()
+
+if do_grid_search:  # Very slow for random forests
+    param_grid = [{'n_estimators': [50, 75, 100], 'max_features': ["auto", 6, 8]}]
     grid_search = sklearn.model_selection.GridSearchCV(students_forest, param_grid, cv=5, scoring='roc_auc_ovr', return_train_score=True)
     grid_search.fit(students_prepared, students_labels)
+    print("Random forest:")
     print(grid_search.best_params_)
-    print(grid_search.best_estimator_)
+    param_grid = [{'Cs': [5, 10, 15], 'max_iter': [100, 150]}]
+    grid_search = sklearn.model_selection.GridSearchCV(pass_fail_log, param_grid, cv=5, scoring='roc_auc', return_train_score=True)
+    grid_search.fit(pass_fail_prepared, pass_fail_labels)
+    print("Pass fail log:")
+    print(grid_search.best_params_)
+    grid_search = sklearn.model_selection.GridSearchCV(pass_distinction_log, param_grid, cv=5, scoring='roc_auc', return_train_score=True)
+    grid_search.fit(pass_distinction_prepared, pass_distinction_labels)
+    print("Pass distinction log:")
+    print(grid_search.best_params_)
 
 students_forest.fit(students_prepared, students_labels)
-
-pass_fail_log = sklearn.linear_model.LogisticRegressionCV()  # This is very good on the training set!
 pass_fail_log.fit(pass_fail_prepared, pass_fail_labels)
-
-pass_distinction_log = sklearn.linear_model.LogisticRegressionCV()
 pass_distinction_log.fit(pass_distinction_prepared, pass_distinction_labels)
 
 #################################
@@ -208,6 +215,8 @@ pass_distinction_test_prepared = full_pipeline.transform(pass_distinction_test_s
 #### Evaluating the models ####
 ###############################
 
+#show_metrics(pass_fail_test_prepared, pass_fail_test_set_labels, pass_fail_log)
+#show_metrics(pass_distinction_test_prepared, pass_distinction_test_set_labels, pass_distinction_log)
 
 #students.plot(kind="scatter", x="avg_score", y="final_result")
 #plt.show()
