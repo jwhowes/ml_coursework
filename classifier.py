@@ -7,19 +7,22 @@ import sklearn.compose
 import sklearn.preprocessing
 import sklearn.linear_model
 import sklearn.ensemble
+import sklearn.tree
+import sklearn.base
 from sklearn.metrics import precision_score, recall_score, accuracy_score, f1_score
 import numpy as np
 import pandas as pd
+import collections
 
 #########################################################################################
 #### How to run:																	 ####
 ####	- Ensure matplotlib, sklearn, numpy, and pandas are installed and up-to-date ####
-####	- Run via the commmand line or through other means						   ####
-####		- e.g. python classifier.py											  ####
-####	- All data files should be stored as .csv in a subfolder called 'data'	   ####
+####	- Run via the commmand line or through other means							 ####
+####		- e.g. python classifier.py												 ####
+####	- All data files should be stored as .csv in a subfolder called 'data'		 ####
 #########################################################################################
 
-show_corr = True
+show_corr = False
 show_hist = False
 show_strat_hist = False
 do_grid_search = False
@@ -38,17 +41,18 @@ def int_to_pass_fail(num):  # If we're including withdrawn rows
 	return 0
 
 def show_metrics(X, y, classifier, multiclass=False):
+	pred_y = classifier.predict(X)
 	if multiclass:
-		print("Precision:", precision_score(y, classifier.predict(X), average="macro"))
-		print("Recall:", recall_score(y, classifier.predict(X), average="macro"))
+		print("Precision:", precision_score(y, pred_y, average="macro"))
+		print("Recall:", recall_score(y, pred_y, average="macro"))
 	else:
-		print("Precision:", precision_score(y, classifier.predict(X)))
-		print("Recall:", recall_score(y, classifier.predict(X)))
-	print("Accuracy:", accuracy_score(y, classifier.predict(X)))
+		print("Precision:", precision_score(y, pred_y))
+		print("Recall:", recall_score(y, pred_y))
+	print("Accuracy:", accuracy_score(y, pred_y))
 	if multiclass:
-		print("F1:", f1_score(y, classifier.predict(X), average="macro"))
+		print("F1:", f1_score(y, pred_y, average="macro"))
 	else:
-		print("F1:", f1_score(y, classifier.predict(X)))
+		print("F1:", f1_score(y, pred_y))
 
 def show_corr_matrix(data, label):
 	corr_matrix = data.corr()
@@ -73,7 +77,7 @@ students = pd.read_csv("./data/studentInfo.csv")  # Data from studentInfo
 registration = pd.read_csv("./data/studentRegistration.csv")
 assessment = pd.read_csv("./data/studentAssessment.csv")
 
-students = students.dropna(subset=["imd_band"])  # Drop students with null imd_band attribute
+#students = students.dropna(subset=["imd_band"])  # Drop students with null imd_band attribute (not used anymore)
 
 students = students[students["final_result"] != "Withdrawn"]  # The correlations are much higher when we remove withdrawn values
 
@@ -125,21 +129,21 @@ pass_distinction = students.loc[students["final_result"].isin([2, 1])].copy()
 pass_distinction["final_result"] = pass_distinction["final_result"].map(lambda x: x - 1)  # 1: distinction, 0: pass
 
 split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)  # Remove random_state before submitting
-for train_index, test_index in split.split(students, students["avg_score_cat"]):
+for train_index, test_index in split.split(students, students["final_result"]):
 	students_train_set = students.iloc[train_index]
 	students_test_set = students.iloc[test_index]
 
-for train_index, test_index in split.split(pass_fail, pass_fail["avg_score_cat"]):
+for train_index, test_index in split.split(pass_fail, pass_fail["final_result"]):
 	pass_fail_train_set = pass_fail.iloc[train_index]
 	pass_fail_test_set = pass_fail.iloc[test_index]
 
-for train_index, test_index in split.split(pass_distinction, pass_distinction["avg_score_cat"]):
+for train_index, test_index in split.split(pass_distinction, pass_distinction["final_result"]):
 	pass_distinction_train_set = pass_distinction.iloc[train_index]
 	pass_distinction_test_set = pass_distinction.iloc[test_index]
 
 for set_ in (students_train_set, students_test_set, pass_fail_train_set, pass_fail_test_set, pass_distinction_train_set, pass_distinction_test_set):
 	set_.drop("avg_score_cat", axis=1, inplace=True)
-	#set_.drop("id_student", axis=1, inplace=True)
+	set_.drop("id_student", axis=1, inplace=True)
 
 students = students_train_set.drop("final_result", axis=1)
 students_labels = students_train_set["final_result"].copy()
@@ -153,6 +157,7 @@ pass_distinction_labels = pass_distinction_train_set["final_result"].copy()
 #######################
 #### Data Cleaning ####
 #######################
+
 num_attribs = ["num_of_prev_attempts", "studied_credits", "num_modules", "avg_score"]
 cat_attribs = ["code_module", "code_presentation", "gender", "region", "highest_education", "imd_band", "age_band", "disability"]
 
@@ -161,9 +166,14 @@ num_pipeline = sklearn.pipeline.Pipeline([
 	('std_scaler', sklearn.preprocessing.StandardScaler())  # Standardises data ranges
 ])
 
+cat_pipeline = sklearn.pipeline.Pipeline([
+	('imputer', sklearn.impute.SimpleImputer(strategy="most_frequent")),
+	('one_hot', sklearn.preprocessing.OneHotEncoder())
+])
+
 full_pipeline = sklearn.compose.ColumnTransformer([
 	("num", num_pipeline, num_attribs),
-	("cat", sklearn.preprocessing.OneHotEncoder(), cat_attribs)
+	("cat", cat_pipeline, cat_attribs)
 ])
 
 students_prepared = full_pipeline.fit_transform(students)
@@ -175,7 +185,7 @@ pass_distinction_prepared = full_pipeline.transform(pass_distinction)
 ###############################
 
 students_forest = sklearn.ensemble.RandomForestClassifier(random_state=42, oob_score=True)
-pass_fail_log = sklearn.linear_model.LogisticRegressionCV()  # This is very good on the training set!
+pass_fail_log = sklearn.linear_model.LogisticRegressionCV()  # sklearn's CV classifiers contain builit-in cross-validation for hyper paramter tuning.
 pass_distinction_log = sklearn.linear_model.LogisticRegressionCV()
 
 if do_grid_search:  # Very slow for random forests
@@ -198,6 +208,19 @@ students_forest.fit(students_prepared, students_labels)
 pass_fail_log.fit(pass_fail_prepared, pass_fail_labels)
 pass_distinction_log.fit(pass_distinction_prepared, pass_distinction_labels)
 
+class Combine_logs(object):
+	def __init__(self, log1, log2):
+		self.log1 = log1
+		self.log2 = log2
+	def predict(self, X):
+		y = self.log1.predict(X)
+		for i in range(len(y)):
+			if y[i] == 1:
+				y[i] = self.log2.predict(X[i])[0] + 1
+		return y
+
+students_log = Combine_logs(pass_fail_log, pass_distinction_log)
+
 #################################
 #### Preparing the test sets ####
 #################################
@@ -218,8 +241,19 @@ pass_distinction_test_prepared = full_pipeline.transform(pass_distinction_test_s
 #### Evaluating the models ####
 ###############################
 
-#show_metrics(pass_fail_test_prepared, pass_fail_test_set_labels, pass_fail_log)
-#show_metrics(pass_distinction_test_prepared, pass_distinction_test_set_labels, pass_distinction_log)
+print("here")
+#students_log = sklearn.linear_model.LogisticRegressionCV(multi_class="multinomial")
+#students_log.fit(students_prepared, students_labels)
 
-#students.plot(kind="scatter", x="avg_score", y="final_result")
-#plt.show()
+#show_metrics(students_test_prepared, students_test_set_labels, students_log, multiclass=True)
+#print("!!!!!!!!!!!!!!!!!!!!!")
+#show_metrics(students_test_prepared, students_test_set_labels, students_forest, multiclass=True)
+show_metrics(students_prepared, students_labels, students_log, multiclass=True)
+print("!!!!!!!!!!!!!!!!!!!")
+show_metrics(students_prepared, students_labels, students_forest, multiclass=True)
+print("Out of bag:", students_forest.oob_score_)
+
+sklearn.metrics.plot_roc_curve(pass_fail_log, pass_fail_prepared, pass_fail_labels)
+plt.show()
+sklearn.metrics.plot_roc_curve(pass_distinction_log, pass_distinction_prepared, pass_distinction_labels)
+plt.show()

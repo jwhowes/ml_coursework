@@ -1,82 +1,43 @@
-DATA: () means not sure if relevant. An indent below a note means that info is stored in another table
-Module:
-	- ID
-	- length
-	- (start date)
+NEED TO REDO EVERY FIGURE! (I CHANGED THE CAT IMPUTER)
+	- Everything's better now except the forest on the training set
+		- The difference is incredibly negligible
 
-Assessments:
-	- module ID
-	- presentation ID (not sure what presentation means)
-	- type
-	- date
-
-Students:
-	- gender
-	- age range
-	- number of previous attempts
-	- region
-	- disability
-	- final result [THIS IS WHAT I'M TRYING TO GUESS]
-	- The modules the student is taking
-		- student ID
-		- module ID
-		- presentation ID
-		- date's of registration and unregistration
-	- Past assessments (very much doubt the model will have access to this)
-		- student ID
-		- assessment ID
-		- date submitted
-		- score
-
-VLE info (external resources available to students):
-	- site ID
-	- module ID
-	- assessment ID
-	- some other stuff
-	- each student's uses
-		- date of student's interaction
-		- the number of times a student interacted with it that day
-
-GENERAL NOTES:
-	The goal is clearly to take a student's information and guess their final result.
-	Not sure how much information this model will be given (do they just get student information or do they get some degree of past academic achievements?)
-	Think about representation for non-numerical values.
-
-IDEAS:
-	I could try just taking a student's information on its own (no extra info from courses etc.). This would be very easy but probably won't get very good results.
-	I could try using stratified-sampling (with what field?)
-		- Probably one of the aggregate ones, check some correlation stuff
-	Think about feature scaling
-
-Data I'll use:
-	- Non-aggregate:
-		- studentInfo (All fields)
-	- Aggregate:
-		- studentRegistration (number of courses)
-		- studentAssessment (average score)
-
-The four categories issue:
-	- Make two groups with two categories in each
-		- Need three classifiers
-	- Remove 'withdrawn' records and produce a pass/distinction subgroup of pass
-		- These are essentially corrupt Data
-		- Still need two classifiers if we are to separate pass/distinction
-		- Looking at the scatter plot(s) (e.g. avg_score vs final_result), this seems to be confirmed
-		- The correlations are much higher if we remove withdrawn records
-		- Definitely go for this one but provide functionality for both, so we can compare correlation matrices and accuracy etc.
-	- Remove 'withdrawn' records and convert all distinctions to just passes
-		- I don't really like this idea
-		- Will only need one classifier but it won't give as much information
-
-tables and charts:
-	- ROC curves for everything
-	- A few charts showing correlations
-	- Correlation matrices with and without removing withdrawn rows
+TODO:
+	- Redo every figure
+	- Rewrite the conclusion (as described in 'sampling based off label')
+	- Add intro
+	- Rewrite ROC paragraph
+		- Take a look at my argument
+		- If you still agree, make it make more sense
+		- If you don't, change it to be accurate
 
 pass_distinction data:
-    9485 passes, 2237 distinctions (this is only from those who passed)
+	9485 passes, 2237 distinctions (this is only from those who passed)
 
 Output from grid search:
-    Random forest: {'max_features': 8, 'n_estimators': 100}
-    Pass fail log: {'Cs': 10, 'max_iter': 100}
-    Pass distinction log: {'Cs': 10, 'max_iter': 100}
+	Random forest: {'max_features': 8, 'n_estimators': 100}
+	Pass fail log: {'Cs': 10, 'max_iter': 100}
+	Pass distinction log: {'Cs': 10, 'max_iter': 100}
+
+To fix multiple regressor issue:
+	- Add new table/confusion matrix for combined logistic classifier.
+	- Mention and disregard possibility of softmax etc.
+		- Probably put this in the Logistic Regressor section
+		- Difference in performance is extremely slight
+		- Difficult to determine superior model
+
+Sampling based off label:
+	- Performances essentially identical on traning set
+	- Performance of random forest is worse on test set
+	- Performance of log regressors better on test set
+	- Will need to recheck other shit I referred to
+		- ROC curves are identical (thank god)
+		- Log charts are identical
+		- Just need to do confusion matrices
+	- If I do this I'll have to rewrite the conclusion
+		- Pretty much back to the old old one (except not so much confidence in regressors over random forests)
+		- I expected random forests to do better but they were clearly over-fitted. Given a larger set they may not have been
+		- It will be more convincing as regressors are better by every metric
+	- Should I do it?
+		- It will be a stronger conclusion
+		- All other observations will stand (so the answer is probably)
