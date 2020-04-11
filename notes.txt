@@ -4,6 +4,7 @@ NEED TO REDO EVERY FIGURE! (I CHANGED THE CAT IMPUTER)
 
 TODO:
 	- Redo every figure
+		- The main relationships haven't changed but just reread some specific observations to make sure they still hold
 	- Rewrite the conclusion (as described in 'sampling based off label')
 	- Add intro
 	- Rewrite ROC paragraph
