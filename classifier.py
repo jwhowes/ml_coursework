@@ -23,7 +23,7 @@ import collections
 #########################################################################################
 
 show_corr = False
-show_hist = True
+show_hist = False
 do_grid_search = False
 
 def result_to_int(result):
@@ -45,16 +45,16 @@ def show_metrics(X, y, classifier, multiclass=False):
 	"""Displays metrics for a classifier acting on data X with true labels y"""
 	pred_y = classifier.predict(X)
 	if multiclass:
-		print("Precision:", precision_score(y, pred_y, average="macro"))  # Uses macro averaging for multiclass classifiers
-		print("Recall:", recall_score(y, pred_y, average="macro"))
+		print("\tPrecision:", precision_score(y, pred_y, average="macro"))  # Uses macro averaging for multiclass classifiers
+		print("\tRecall:", recall_score(y, pred_y, average="macro"))
 	else:
-		print("Precision:", precision_score(y, pred_y))
-		print("Recall:", recall_score(y, pred_y))
-	print("Accuracy:", accuracy_score(y, pred_y))
+		print("\tPrecision:", precision_score(y, pred_y))
+		print("\tRecall:", recall_score(y, pred_y))
+	print("\tAccuracy:", accuracy_score(y, pred_y))
 	if multiclass:
-		print("F1:", f1_score(y, pred_y, average="macro"))
+		print("\tF1:", f1_score(y, pred_y, average="macro"))
 	else:
-		print("F1:", f1_score(y, pred_y))
+		print("\tF1:", f1_score(y, pred_y))
 
 def show_corr_matrix(data, label):
 	"""Displays the correlation matrix for data with a given label"""
@@ -76,7 +76,6 @@ def plot_logistic_classifier(X_unprepared, X_prepared, x, labels, log_classifier
 	plt.ylabel("final_result", fontsize=14)
 	plt.scatter(X_unprepared[x], labels)
 	plt.scatter(X_unprepared[x], log_classifier.predict_proba(X_prepared)[:,1], s=0.1)
-	plt.savefig("pass_distinction_log.png")
 
 # import data
 students = pd.read_csv("./data/studentInfo.csv")
@@ -245,7 +244,46 @@ pass_distinction_test_prepared = full_pipeline.transform(pass_distinction_test_s
 #### Evaluating the models ####
 ###############################
 
+print("\nMetrics for logistic regressors on training data:")
+print("Pass/fail:")
+show_metrics(pass_fail_prepared, pass_fail_labels, pass_fail_log)
+print("Pass/distinction:")
+show_metrics(pass_distinction_prepared, pass_distinction_labels, pass_distinction_log)
+print("Combined:")
+show_metrics(students_prepared, students_labels, students_log, multiclass=True)
+print("Combined confusion matrix:")
+print(sklearn.metrics.confusion_matrix(students_labels, students_log.predict(students_prepared)))
+
+print("\nMetrics for logistic regressors on test data:")
+print("Pass/fail:")
+show_metrics(pass_fail_test_prepared, pass_fail_test_set_labels, pass_fail_log)
+print("Pass/distinction:")
+show_metrics(pass_distinction_test_prepared, pass_distinction_test_set_labels, pass_distinction_log)
+print("Combined:")
+show_metrics(students_test_prepared, students_test_set_labels, students_log, multiclass=True)
+print("Combined confusion matrix:")
+print(sklearn.metrics.confusion_matrix(students_test_set_labels, students_log.predict(students_test_prepared)))
+
+# Plotting predicted probability based on average score against final result
+plot_logistic_classifier(pass_fail, pass_fail_prepared, "avg_score", pass_fail_labels, pass_fail_log)
+plot_logistic_classifier(pass_distinction, pass_distinction_prepared, "avg_score", pass_distinction_labels, pass_distinction_log)
+plt.show()
+
+# Plotting ROC curves
+print("Plotting pass/fail ROC")
 sklearn.metrics.plot_roc_curve(pass_fail_log, pass_fail_test_prepared, pass_fail_test_set_labels)
-plt.savefig("pass_fail_log_test_roc.png")
+plt.show()
+print("Plotting pass/distinction ROC")
 sklearn.metrics.plot_roc_curve(pass_distinction_log, pass_distinction_test_prepared, pass_distinction_test_set_labels)
-plt.savefig("pass_distinction_log_test_roc.png")
+plt.show()
+
+print("\nMetrics for random forest on training data:")
+show_metrics(students_prepared, students_labels, students_forest, multiclass=True)
+print("\tOut of bag:", students_forest.oob_score_)
+print("Confusion matrix:")
+print(sklearn.metrics.confusion_matrix(students_labels, students_forest.predict(students_prepared)))
+
+print("\nMetrics for random forest on test data:")
+show_metrics(students_test_prepared, students_test_set_labels, students_forest, multiclass=True)
+print("Confusion Matrix:")
+print(sklearn.metrics.confusion_matrix(students_test_set_labels, students_forest.predict(students_test_prepared)))

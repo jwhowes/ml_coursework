@@ -3,14 +3,11 @@ NEED TO REDO EVERY FIGURE! (I CHANGED THE CAT IMPUTER)
 		- The difference is incredibly negligible
 
 TODO:
-	- Redo every figure
-		- The main relationships haven't changed but just reread some specific observations to make sure they still hold
-	- Rewrite the conclusion (as described in 'sampling based off label')
+	- Check specific figure observations
+		- 
 	- Add intro
-	- Rewrite ROC paragraph
-		- Take a look at my argument
-		- If you still agree, make it make more sense
-		- If you don't, change it to be accurate
+	- Take one last look at ROC paragraph
+	- Maybe mention in-built cross validation in sklearn
 
 pass_distinction data:
 	9485 passes, 2237 distinctions (this is only from those who passed)
@@ -31,10 +28,6 @@ Sampling based off label:
 	- Performances essentially identical on traning set
 	- Performance of random forest is worse on test set
 	- Performance of log regressors better on test set
-	- Will need to recheck other shit I referred to
-		- ROC curves are identical (thank god)
-		- Log charts are identical
-		- Just need to do confusion matrices
 	- If I do this I'll have to rewrite the conclusion
 		- Pretty much back to the old old one (except not so much confidence in regressors over random forests)
 		- I expected random forests to do better but they were clearly over-fitted. Given a larger set they may not have been
