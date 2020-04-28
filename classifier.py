@@ -136,9 +136,6 @@ for train_index, test_index in split.split(pass_distinction, pass_distinction["f
 	pass_distinction_train_set = pass_distinction.iloc[train_index]
 	pass_distinction_test_set = pass_distinction.iloc[test_index]
 
-for set_ in (students_train_set, students_test_set, pass_fail_train_set, pass_fail_test_set, pass_distinction_train_set, pass_distinction_test_set):
-	set_.drop("id_student", axis=1, inplace=True)  # Drop id_student (no longer needed and creates unnecessary noise).
-
 # Separate labels from training sets
 students = students_train_set.drop("final_result", axis=1)
 students_labels = students_train_set["final_result"].copy()
