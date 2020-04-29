@@ -3,10 +3,6 @@ NEED TO REDO EVERY FIGURE! (I CHANGED THE CAT IMPUTER)
 		- The difference is incredibly negligible
 
 TODO:
-	- Check specific figure observations
-		- 
-	- Add intro
-	- Take one last look at ROC paragraph
 	- Maybe mention in-built cross validation in sklearn
 
 pass_distinction data:
