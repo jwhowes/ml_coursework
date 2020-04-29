@@ -7,12 +7,9 @@ import sklearn.compose
 import sklearn.preprocessing
 import sklearn.linear_model
 import sklearn.ensemble
-import sklearn.tree
-import sklearn.base
 from sklearn.metrics import precision_score, recall_score, accuracy_score, f1_score
 import numpy as np
 import pandas as pd
-import collections
 
 #########################################################################################
 #### How to run:																	 ####
@@ -168,8 +165,8 @@ cat_pipeline = sklearn.pipeline.Pipeline([
 
 # Combine numerical and categorical pipelines
 full_pipeline = sklearn.compose.ColumnTransformer([
-	("num", num_pipeline, num_attribs),
-	("cat", cat_pipeline, cat_attribs)
+	('num', num_pipeline, num_attribs),
+	('cat', cat_pipeline, cat_attribs)
 ])
 
 # Create prepared training sets
