@@ -17,6 +17,8 @@ import pandas as pd
 ####	- Run via the commmand line or through other means							 ####
 ####		- e.g. $ python classifier.py											 ####
 ####	- All data files should be stored as .csv in a subfolder called 'data'		 ####
+####	- The below boolean variables control what the system does/displays.		 ####
+####		- By default, these are off for run time								 ####
 #########################################################################################
 
 show_corr = False
