@@ -31,3 +31,35 @@ Sampling based off label:
 	- Should I do it?
 		- It will be a stronger conclusion
 		- All other observations will stand (so the answer is probably)
+
+randomised search CV:
+	- After 100 iterations: {'n_estimators': 1600, 'min_samples_split': 10, 'min_samples_leaf': 2, 'max_features': 'auto', 'max_depth': None, 'bootstrap': True}
+	- After 10 iterations: {'n_estimators': 500, 'min_samples_split': 5, 'min_samples_leaf': 2, 'max_features': 'auto', 'max_depth': 90}
+	- Metrics (10 iterations):
+	Metrics for random forest on training data:
+        Precision: 0.9034847607384048
+        Recall: 0.7859783095255506
+        Accuracy: 0.8606238964096528
+        F1: 0.8291459253925585
+        Out of bag: 0.675868157739847
+	Confusion matrix:
+	[[3316 1312   56]
+	[ 144 9684   59]
+	[  14  783 1622]]
+
+	Metrics for random forest on test data:
+			Precision: 0.6905769039305437
+			Recall: 0.56783949396181
+			Accuracy: 0.6854990583804144
+			F1: 0.60068166319071
+	Confusion Matrix:
+	[[ 486  656   29]
+	[ 213 2180   79]
+	[   1  358  246]]
+
+Randomised CV adjustments:
+	- Obviously change all tables etc. to do with random forests
+	- Is it overfitted? I think so but not by as much
+	- New conclusion:
+		- RF performed slightly better than LR (not in every metric). It's hard to pick a clear winner.
+		- Same thing with Ockham's razor

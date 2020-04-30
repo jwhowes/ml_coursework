@@ -22,6 +22,7 @@ import pandas as pd
 show_corr = False
 show_hist = False
 do_grid_search = False
+do_random_search = False
 
 def result_to_int(result):
 	"""Converts final_result attribute to an integer"""
@@ -179,7 +180,7 @@ pass_distinction_prepared = full_pipeline.transform(pass_distinction)
 ###############################
 
 # Create untrained models
-students_forest = sklearn.ensemble.RandomForestClassifier(random_state=42, oob_score=True)
+students_forest = sklearn.ensemble.RandomForestClassifier(random_state=42, oob_score=True, n_estimators=500, min_samples_split=5, min_samples_leaf=2, max_features='auto', max_depth=90)
 pass_fail_log = sklearn.linear_model.LogisticRegressionCV()  # sklearn's CV classifiers contain builit-in cross-validation for hyper paramter tuning.
 pass_distinction_log = sklearn.linear_model.LogisticRegressionCV()
 
@@ -199,6 +200,25 @@ if do_grid_search:
 	grid_search.fit(pass_distinction_prepared, pass_distinction_labels)
 	print("Pass distinction log:")
 	print(grid_search.best_params_)
+
+# Perform a randomized cross-validation search for the random forest
+if do_random_search:  # Takes several minutes
+	n_estimators = [int(x) for x in np.linspace(start=200, stop=500, num=10)]
+	max_features = ['auto']
+	max_depth = [int(x) for x in np.linspace(10, 110, num=11)]
+	max_depth.append(None)
+	min_samples_split = [2, 5, 10]
+	min_samples_leaf = [1, 2, 4]
+	random_grid = {
+		'n_estimators': n_estimators,
+		'max_features': max_features,
+		'max_depth': max_depth,
+		'min_samples_split': min_samples_split,
+		'min_samples_leaf': min_samples_leaf,
+		'bootstrap': [True]}
+	students_forest_random = sklearn.model_selection.RandomizedSearchCV(estimator=students_forest, param_distributions=random_grid, n_iter=10, cv=3, verbose=1, random_state=42, n_jobs=-1)
+	students_forest_random.fit(students_prepared, students_labels)
+	print(students_forest_random.best_params_)
 
 # Train models against training data
 students_forest.fit(students_prepared, students_labels)
